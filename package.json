@@ -1,0 +1,29 @@
+{
+  "name": "fkodelabs-business-calculator",
+  "version": "1.0.0",
+  "description": "Zero-dependency UAE VAT (5%) and Corporate Tax (0% / 9%) calculators in TypeScript, with a static demo page. Not tax advice.",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md", "LICENSE"],
+  "scripts": {
+    "build": "tsc && cp dist/index.js docs/uae-business-calculators.js",
+    "test": "npm run build && node --test test/calculators.test.js"
+  },
+  "keywords": ["uae", "vat", "corporate-tax", "dubai", "calculator", "aed", "tax", "typescript"],
+  "author": "Furqan Khan, FKodeLabs (https://www.fkodelabs.com)",
+  "homepage": "https://fk219.github.io/fkodelabs-business-calculator/",
+  "repository": { "type": "git", "url": "git+https://github.com/fk219/fkodelabs-business-calculator.git" },
+  "bugs": { "url": "https://github.com/fk219/fkodelabs-business-calculator/issues" },
+  "license": "MIT",
+  "engines": { "node": ">=18" },
+  "devDependencies": {
+    "typescript": "^5.6.0"
+  }
+}
