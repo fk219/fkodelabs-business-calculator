@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>UAE VAT &amp; Corporate Tax Calculator (free, open source)</title>
+<meta name="description" content="Free, open-source UAE VAT calculator (add or remove 5% VAT) and UAE Corporate Tax estimator (0% up to AED 375,000, 9% above). Runs in your browser. Not tax advice.">
+<link rel="canonical" href="https://fk219.github.io/fkodelabs-business-calculator/">
+<style>
+  :root { --ink:#14213d; --muted:#5c677d; --line:#dde3ea; --bg:#f7f9fb; --accent:#0b6e4f; }
+  * { box-sizing:border-box; }
+  body { margin:0; font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans Arabic",sans-serif; color:var(--ink); background:var(--bg); }
+  main { max-width:880px; margin:0 auto; padding:32px 20px 48px; }
+  h1 { font-size:1.8rem; margin:0 0 6px; }
+  .lede { color:var(--muted); margin:0 0 24px; }
+  .grid { display:grid; gap:20px; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); }
+  section.card { background:#fff; border:1px solid var(--line); border-radius:12px; padding:20px; }
+  h2 { font-size:1.2rem; margin:0 0 12px; }
+  label { display:block; font-weight:600; margin:12px 0 4px; }
+  input { width:100%; padding:10px 12px; font-size:1rem; border:1px solid var(--line); border-radius:8px; }
+  .modes { display:flex; gap:16px; margin-top:12px; }
+  .modes label { font-weight:400; margin:0; display:flex; gap:6px; align-items:center; }
+  .modes input { width:auto; }
+  dl { display:grid; grid-template-columns:1fr auto; gap:6px 12px; margin:16px 0 0; }
+  dt { color:var(--muted); } dd { margin:0; text-align:end; font-variant-numeric:tabular-nums; font-weight:600; }
+  .total { border-top:1px solid var(--line); padding-top:6px; }
+  .note { font-size:.85rem; color:var(--muted); margin-top:12px; }
+  .disclaimer { background:#fff8e6; border:1px solid #f1d58a; border-radius:12px; padding:16px; margin-top:24px; font-size:.92rem; }
+  footer { margin-top:28px; font-size:.9rem; color:var(--muted); }
+  a { color:var(--accent); }
+</style>
+</head>
+<body>
+<main>
+  <h1>UAE VAT &amp; Corporate Tax Calculator</h1>
+  <p class="lede">Free and open source. Everything runs in your browser; nothing you type is sent anywhere.</p>
+
+  <div class="grid">
+    <section class="card" aria-labelledby="vat-h">
+      <h2 id="vat-h">VAT (5% standard rate)</h2>
+      <label for="vat-amount">Amount (AED)</label>
+      <input id="vat-amount" type="number" inputmode="decimal" min="0" step="0.01" value="1000">
+      <div class="modes" role="radiogroup" aria-label="Amount type">
+        <label><input type="radio" name="vat-mode" value="add" checked> Excludes VAT (add VAT)</label>
+        <label><input type="radio" name="vat-mode" value="remove"> Includes VAT (remove VAT)</label>
+      </div>
+      <dl>
+        <dt>Net (excl. VAT)</dt><dd id="vat-net">–</dd>
+        <dt>VAT 5%</dt><dd id="vat-vat">–</dd>
+        <dt class="total">Gross (incl. VAT)</dt><dd class="total" id="vat-gross">–</dd>
+      </dl>
+      <p class="note">Standard rate only. Zero-rated and exempt supplies are not covered.</p>
+    </section>
+
+    <section class="card" aria-labelledby="ct-h">
+      <h2 id="ct-h">Corporate Tax estimate</h2>
+      <label for="ct-income">Taxable income for the tax period (AED)</label>
+      <input id="ct-income" type="number" inputmode="decimal" min="0" step="0.01" value="1000000">
+      <dl>
+        <dt>Taxed at 0% (up to AED 375,000)</dt><dd id="ct-zero">–</dd>
+        <dt>Taxed at 9%</dt><dd id="ct-std">–</dd>
+        <dt class="total">Estimated Corporate Tax</dt><dd class="total" id="ct-tax">–</dd>
+        <dt>Effective rate</dt><dd id="ct-eff">–</dd>
+      </dl>
+      <p class="note">Basic rule only. Small Business Relief, Qualifying Free Zone Persons, exemptions, losses, tax groups and large-multinational rules are not modelled.</p>
+    </section>
+  </div>
+
+  <div class="disclaimer" role="note">
+    <strong>Not tax advice.</strong> This tool gives rough estimates of the basic statutory rules and may not reflect your situation or later changes to the law. Check with the Federal Tax Authority (<a href="https://tax.gov.ae" rel="noopener">tax.gov.ae</a>) or a registered tax agent before filing or pricing.
+    Sources: Federal Decree-Law No. 8 of 2017 (VAT), Art. 3; Federal Decree-Law No. 47 of 2022 (Corporate Tax), Art. 3; Cabinet Decision No. 116 of 2022, Art. 2.
+  </div>
+
+  <footer>
+    Open source (MIT) on <a href="https://github.com/fk219/fkodelabs-business-calculator">GitHub</a>.
+    Built by <a href="https://www.fkodelabs.com">FKodeLabs</a>, a web and app development studio in Dubai.
+  </footer>
+</main>
+<script type="module">
+  import { addVat, removeVat, estimateCorporateTax, formatAed } from "./uae-business-calculators.js";
+  const $ = (id) => document.getElementById(id);
+  const num = (el) => { const v = parseFloat(el.value); return Number.isFinite(v) && v >= 0 ? v : null; };
+
+  function renderVat() {
+    const amount = num($("vat-amount"));
+    const mode = document.querySelector('input[name="vat-mode"]:checked').value;
+    if (amount === null) { ["vat-net","vat-vat","vat-gross"].forEach((id) => $(id).textContent = "–"); return; }
+    const r = mode === "add" ? addVat(amount) : removeVat(amount);
+    $("vat-net").textContent = formatAed(r.net);
+    $("vat-vat").textContent = formatAed(r.vat);
+    $("vat-gross").textContent = formatAed(r.gross);
+  }
+  function renderCt() {
+    const income = num($("ct-income"));
+    if (income === null) { ["ct-zero","ct-std","ct-tax","ct-eff"].forEach((id) => $(id).textContent = "–"); return; }
+    const r = estimateCorporateTax(income);
+    $("ct-zero").textContent = formatAed(r.zeroRatedPortion);
+    $("ct-std").textContent = formatAed(r.standardRatedPortion);
+    $("ct-tax").textContent = formatAed(r.tax);
+    $("ct-eff").textContent = (r.effectiveRate * 100).toFixed(2) + "%";
+  }
+  $("vat-amount").addEventListener("input", renderVat);
+  document.querySelectorAll('input[name="vat-mode"]').forEach((el) => el.addEventListener("change", renderVat));
+  $("ct-income").addEventListener("input", renderCt);
+  renderVat(); renderCt();
+</script>
+</body>
+</html>
